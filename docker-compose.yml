@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  [cite_start]db: # Servicio MariaDB [cite: 28, 29]
+    image: mariadb:10.11
+    container_name: db_coches
+    environment:
+      MYSQL_DATABASE: concesionario
+      MYSQL_USER: user_examen
+      MYSQL_PASSWORD: pass_examen
+      MYSQL_ROOT_PASSWORD: root_pass
+    volumes:
+      - [cite_start]db_data:/var/lib/mysql # Persistencia de datos [cite: 30, 69]
+      - [cite_start]./docker/sql/init.sql:/docker-entrypoint-initdb.d/init.sql # Carga automática [cite: 34, 70]
+    networks:
+      - [cite_start]red_interna # Solo acceso interno [cite: 35, 64]
+
+  [cite_start]web: # Servicio PHP [cite: 36]
+    build: ./docker/web
+    container_name: web_coches
+    ports:
+      - [cite_start]"80:80" # Accesible por el puerto 80 [cite: 39]
+    environment:
+      DB_NAME: concesionario
+      DB_USER: user_examen
+      DB_PASS: pass_examen
+    volumes:
+      - [cite_start]./docker/web/src:/var/www/html/ # Bind mount para cambios en vivo [cite: 38, 71]
+    depends_on:
+      - db
+    networks:
+      - red_interna
+
+networks:
+  [cite_start]red_interna: # Red interna para comunicación por nombre [cite: 41, 63]
+    driver: bridge
+
+volumes:
+  [cite_start]db_data: # Definición del volumen persistente [cite: 30]
